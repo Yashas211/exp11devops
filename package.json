@@ -1,6 +1,7 @@
 {
-  "name": "sampleapp",
+  "name": "azure-devops-app",
   "version": "1.0.0",
+  "description": "Azure DevOps CI/CD Demo",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
