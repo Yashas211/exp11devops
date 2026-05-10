@@ -1,0 +1,57 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: expp11v
+
+steps:
+
+# Install Node.js
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: 'Install Node.js'
+
+# Install dependencies
+- script: |
+    npm install
+  displayName: 'npm install'
+
+# Display Key Vault secrets from Variable Group
+- script: |
+    echo "Using Key Vault secrets"
+    echo "DbPassword loaded successfully"
+    echo "ApiKey loaded successfully"
+  env:
+    DbPassword: $(DbPassword)
+    ApiKey: $(ApiKey)
+  displayName: 'Use Azure Key Vault Secrets'
+
+# Archive application files
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '.'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+  displayName: 'Archive Application Files'
+
+# Publish build artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/app.zip'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Publish Build Artifact'
+
+# Deploy to Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    appName: 'exp11'
+    package: '$(Build.ArtifactStagingDirectory)/app.zip'
+  displayName: 'Deploy to Azure App Service'
